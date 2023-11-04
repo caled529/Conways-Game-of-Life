@@ -1,4 +1,5 @@
 import os
+import pygame
 import time
 
 
@@ -21,16 +22,19 @@ def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
     return False
 
 
-def print_grid(grid: list[list[bool]]) -> None:
-    os.system("cls" if os.name == "nt" else "clear")
+def render_grid(screen: pygame.Surface, grid: list[list[bool]], cell_size: int) -> None:
+    BLACK = pygame.Color(0, 0, 0)
+    GREY = pygame.Color(127, 127, 127)
 
     for y in range(len(grid[0])):
-        for column in grid:
-            if column[y]:
-                print("██", end = "")
+        for x in range(len(grid)):
+            if grid[x][y]:
+                pygame.draw.rect(screen, BLACK, pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size))
             else:
-                print("\uffa0\uffa0", end = "")
-        print()
+                pygame.draw.rect(screen, GREY, pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size))
+            pygame.draw.rect(screen, BLACK, pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size), 1)
+
+    pygame.display.flip()
 
 
 def get_file_name() -> str:
@@ -106,19 +110,37 @@ def write_grid(grid: list[list[bool]]) -> None:
 
     new_file.close()
 
-
 def main():
+    CELL_SIZE = 20
+
+    pygame.init()
     grid = read_grid(get_file_name())
+    screen = pygame.display.set_mode((len(grid) * CELL_SIZE, len(grid[0]) * CELL_SIZE))
+    clock = pygame.time.Clock()
 
     while True:
-        gen_start_time = time.perf_counter_ns()
-        print_grid(grid)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                break
+            if event.type == pygame.KEYDOWN:
+                match event.key:
 
-        grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[0]))] for x in range(len(grid))]
+                    case pygame.K_SPACE:
+                        pygame.event.wait(pygame.K_SPACE)
 
-        while time.perf_counter_ns() - gen_start_time < 250000000:
-            pass
+                    case pygame.K_r:
+                        grid = read_grid(get_file_name())
 
+                    case pygame.K_s | pygame.K_w:
+                        write_grid(grid)
+
+                    case pygame.K_ESCAPE:
+                        break
+        
+        if clock.tick(60) / 1000 == 0.25:
+            grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] for x in range(len(grid))]
+            render_grid(screen, grid, CELL_SIZE)
+            
 
 main()
 
