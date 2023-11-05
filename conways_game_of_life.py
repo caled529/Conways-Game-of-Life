@@ -111,33 +111,40 @@ def write_grid(grid: list[list[bool]]) -> None:
     new_file.close()
 
 def main():
-    CELL_SIZE = 20
+    CELL_SIZE = 50
+    GEN_FREQUENCY = 5
 
     pygame.init()
     grid = read_grid(get_file_name())
     screen = pygame.display.set_mode((len(grid) * CELL_SIZE, len(grid[0]) * CELL_SIZE))
     clock = pygame.time.Clock()
+    running = True
+    paused = False
+    dt = 0
 
-    while True:
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                break
+                running = False                
             if event.type == pygame.KEYDOWN:
                 match event.key:
 
                     case pygame.K_SPACE:
-                        pygame.event.wait(pygame.K_SPACE)
+                        paused = not paused
 
-                    case pygame.K_r:
+                    case pygame.K_o | pygame.K_r:
                         grid = read_grid(get_file_name())
 
                     case pygame.K_s | pygame.K_w:
                         write_grid(grid)
 
                     case pygame.K_ESCAPE:
-                        break
-        
-        if clock.tick(60) / 1000 == 0.25:
+                        running = False
+         
+
+        dt += clock.tick(60)
+        if dt >= 1000 / GEN_FREQUENCY and not paused:
+            dt = 0
             grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] for x in range(len(grid))]
             render_grid(screen, grid, CELL_SIZE)
             
