@@ -1,6 +1,5 @@
 import os
 import pygame
-import time
 
 
 def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
@@ -111,15 +110,24 @@ def write_grid(grid: list[list[bool]]) -> None:
     new_file.close()
 
 def main():
-    CELL_SIZE = 50
     GEN_FREQUENCY = 60
+    WIN_SIZE_RATIO = 0.90
 
     pygame.init()
+
+    SCREEN_WIDTH = pygame.display.Info().current_w
+    SCREEN_HEIGHT = pygame.display.Info().current_h
+
     grid = read_grid(get_file_name())
-    screen = pygame.display.set_mode((len(grid) * CELL_SIZE, len(grid[0]) * CELL_SIZE))
+
+    cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+
+    screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
     clock = pygame.time.Clock()
+
     running = True
     paused = False
+
     dt = 0
 
     while running:
@@ -134,8 +142,9 @@ def main():
 
                     case pygame.K_o | pygame.K_r:
                         grid = read_grid(get_file_name())
-                        screen = pygame.display.set_mode((len(grid) * CELL_SIZE, len(grid[0]) * CELL_SIZE))
-                        render_grid(screen, grid, CELL_SIZE)
+                        cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+                        screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
+                        render_grid(screen, grid, cell_size)
 
                     case pygame.K_s | pygame.K_w:
                         write_grid(grid)
@@ -148,7 +157,7 @@ def main():
         if dt >= 1000 / GEN_FREQUENCY and not paused:
             dt = 0
             grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] for x in range(len(grid))]
-            render_grid(screen, grid, CELL_SIZE)
+            render_grid(screen, grid, cell_size)
             
 
 main()
