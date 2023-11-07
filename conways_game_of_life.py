@@ -86,6 +86,8 @@ def read_grid(file_path: str) -> list[list[bool]]:
 
     padded_cell_grid = [column + [False for i in range(max_column_length - len(column))] for column in cell_grid]
 
+    print(f"Loaded file \"{file_path}\"")
+
     return padded_cell_grid
 
 
@@ -108,6 +110,8 @@ def write_grid(grid: list[list[bool]]) -> None:
         new_file.write('\n')
 
     new_file.close()
+
+    print(f"Grid saved to \"{filename}\"")
 
 def main():
     GEN_FREQUENCY = 60
