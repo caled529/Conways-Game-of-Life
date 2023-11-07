@@ -27,11 +27,14 @@ def render_grid(screen: pygame.Surface, grid: list[list[bool]], cell_size: int) 
 
     for y in range(len(grid[0])):
         for x in range(len(grid)):
+            cell_rect = pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size)
+
             if grid[x][y]:
-                pygame.draw.rect(screen, BLACK, pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size))
+                pygame.draw.rect(screen, BLACK, cell_rect)
             else:
-                pygame.draw.rect(screen, GREY, pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size))
-            pygame.draw.rect(screen, BLACK, pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size), 1)
+                pygame.draw.rect(screen, GREY, cell_rect)
+
+            pygame.draw.rect(screen, BLACK, cell_rect, 1)
 
     pygame.display.flip()
 
@@ -80,11 +83,13 @@ def read_grid(file_path: str) -> list[list[bool]]:
 
     transposed_text_grid = zip(*padded_text_lines)
 
-    cell_grid = [[False if char == '0' else True for char in column] for column in transposed_text_grid]
+    cell_grid = [[False if char == '0' else True for char in column] 
+                 for column in transposed_text_grid]
     
     max_column_length = max([len(column) for column in cell_grid])
 
-    padded_cell_grid = [column + [False for i in range(max_column_length - len(column))] for column in cell_grid]
+    padded_cell_grid = [column + [False for i in range(max_column_length - len(column))] 
+                        for column in cell_grid]
 
     print(f"Loaded file \"{file_path}\"")
 
@@ -113,8 +118,9 @@ def write_grid(grid: list[list[bool]]) -> None:
 
     print(f"Grid saved to \"{filename}\"")
 
+
 def main():
-    GEN_FREQUENCY = 60
+    GEN_FREQUENCY = 5
     WIN_SIZE_RATIO = 0.90
 
     pygame.init()
@@ -124,15 +130,16 @@ def main():
 
     grid = read_grid(get_file_name())
 
-    cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+    cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), 
+                        SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
 
     screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
+
     clock = pygame.time.Clock()
+    millis_since_last_gen = 0
 
     running = True
     paused = False
-
-    dt = 0
 
     while running:
         for event in pygame.event.get():
@@ -146,8 +153,10 @@ def main():
 
                     case pygame.K_o | pygame.K_r:
                         grid = read_grid(get_file_name())
-                        cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
-                        screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
+                        cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid),
+                                            SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+                        screen = pygame.display.set_mode((len(grid) * cell_size, 
+                                                          len(grid[0]) * cell_size))
                         render_grid(screen, grid, cell_size)
 
                     case pygame.K_s | pygame.K_w:
@@ -156,11 +165,11 @@ def main():
                     case pygame.K_ESCAPE:
                         running = False
          
-
-        dt += clock.tick(60)
-        if dt >= 1000 / GEN_FREQUENCY and not paused:
-            dt = 0
-            grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] for x in range(len(grid))]
+        millis_since_last_gen += clock.tick(60)
+        if millis_since_last_gen >= 1000 / GEN_FREQUENCY and not paused:
+            millis_since_last_gen = 0
+            grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] 
+                                               for x in range(len(grid))]
             render_grid(screen, grid, cell_size)
             
 
