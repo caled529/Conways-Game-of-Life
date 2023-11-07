@@ -112,7 +112,7 @@ def write_grid(grid: list[list[bool]]) -> None:
 
 def main():
     CELL_SIZE = 50
-    GEN_FREQUENCY = 5
+    GEN_FREQUENCY = 60
 
     pygame.init()
     grid = read_grid(get_file_name())
@@ -134,6 +134,8 @@ def main():
 
                     case pygame.K_o | pygame.K_r:
                         grid = read_grid(get_file_name())
+                        screen = pygame.display.set_mode((len(grid) * CELL_SIZE, len(grid[0]) * CELL_SIZE))
+                        render_grid(screen, grid, CELL_SIZE)
 
                     case pygame.K_s | pygame.K_w:
                         write_grid(grid)
