@@ -1,0 +1,43 @@
+              --- How to make your own grids with text files ---
+
+Make a new text file, then use 0s to represent dead cells and 1s to represent
+living ones. 
+
+1s are only used to represent living cells by convention, but in reality, any 
+character that is not a 0 will be interpreted as a living cell, unless it is 
+leading or trailing whitespace. 
+
+In the event that a line contains leading whitespace, it will be interpreted as 
+though it started at the first non-whitespace character on the line, meaning all 
+the cells will be shifted over to the left.
+
+On the other hand, if a line contains trailing whitespace, it will be padded
+with dead cells to fill in the dimensions of the grid.
+
+Grids can only be rectangular, but any irregularity in line length is handled by
+the program automatically.
+
+Here are some examples to get you started:
+
+00000
+00100
+00100 - This will make a line that turns 90 degrees every generation.
+00100
+00000
+
+00000
+01110
+00010 - This will make a "glider" that moves up and to the right forever.
+00100
+00000
+
+0000
+0110 - This will make a square that stays the same forever.
+0110
+0000
+
+It's important to note that this version of Conway's Game of Life loops around
+onto itself. One could think of the actual simulation being like a globe, while
+the view we see is just a 2D projection onto our screen, much like a world map.
+
+P.S. For fun, you could even try opening this file as a grid in the program!
