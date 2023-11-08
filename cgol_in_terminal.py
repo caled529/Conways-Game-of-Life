@@ -16,7 +16,7 @@ def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
             # their growth by permitting looping around to the other side of the 
             # grid. One could think of it like how world maps are projections of
             # a 3D sphere onto a 2D plane.
-            if grid[x % len(grid)][y % len(grid[0])]:
+            if grid[x % len(grid)][y % len(grid[0])] is True:
                 num_neighbours += 1
 
     # The rules of Conway's Game of Life state that a living cell will continue
@@ -24,7 +24,7 @@ def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
     # cell will come to life in the next generation if it has exactly 3 
     # neighbours. All cells that do not fit into one of these three descriptions
     # will be dead in the next generation.
-    if grid[cell_x][cell_y]:
+    if grid[cell_x][cell_y] is True:
         if num_neighbours == 2 or num_neighbours == 3:
             return True
     else:
@@ -40,11 +40,29 @@ def print_grid(grid: list[list[bool]]) -> None:
     # Grid is traversed column-by-row to properly print out to the terminal.
     for y in range(len(grid[0])):
         for column in grid:
-            if column[y]:
+            if column[y] is True:
                 print("██", end = "")
             else:
                 print("  ", end = "")
         print()
+
+
+# Prompts a user for a positive number, then validates the input.
+def get_pos_num(message: str = "") -> float:
+    print(message, end = "")
+
+    while True:
+        user_in = input()
+
+        # Periods have to be removed from the input when checking with isdigit 
+        # because otherwise strings representing decimal numbers would not go 
+        # through the filter. This means that we then also have to check that 
+        # there isnt more than one period in the string.
+        if user_in.replace('.', '').isdigit() and user_in.count('.') <= 1:
+            if float(user_in) > 0:
+                return float(user_in)
+
+        print(f"\"{user_in}\" is not a valid input, try again: ", end = "")
 
 
 # Prompts the user to select from all .txt files in the current directory, then
@@ -135,9 +153,9 @@ def write_grid(grid: list[list[bool]]) -> None:
 
 
 def main():
-    GEN_FREQUENCY = 4
-
     grid = read_grid(get_file_name())
+
+    gen_frequency = get_pos_num("Enter a numerical value >0 for the generation frequency: ")
 
     while True:
         gen_start_time = time.perf_counter_ns()
@@ -148,7 +166,7 @@ def main():
 
         # Prevents the program from continuing until enough time has passed 
         # since the last generation was displayed.
-        while time.perf_counter_ns() - gen_start_time < 1000000000 / GEN_FREQUENCY:
+        while time.perf_counter_ns() - gen_start_time < 1000000000 / gen_frequency:
             pass
 
 
