@@ -141,7 +141,7 @@ def write_grid(grid: list[list[bool]]) -> None:
 
 
 def main():
-    GEN_FREQUENCY = 5
+    GEN_FREQUENCY = 4
     WIN_SIZE_RATIO = 0.90
 
     pygame.init()
@@ -156,6 +156,8 @@ def main():
                         SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
 
     screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
+
+    render_grid(screen, grid, cell_size)
 
     clock = pygame.time.Clock()
     millis_since_last_gen = 0
