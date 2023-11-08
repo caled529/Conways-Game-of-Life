@@ -1,10 +1,10 @@
 import os
-import time
+import pygame
 
 
 # Determines if a given cell on a grid will be alive or dead in the next generation.
 def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
-    num_neighbours: int = 0
+    num_neighbours = 0
 
     # Look at all the cells adjacent to the current cell and increase the
     # neighbour counter for each living cell.
@@ -33,18 +33,25 @@ def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
     return False
 
 
-# Clears the terminal output, then prints characters to represent cells.
-def print_grid(grid: list[list[bool]]) -> None:
-    os.system("cls" if os.name == "nt" else "clear")
+# Draws the grid of cells onto a pygame window.
+def render_grid(screen: pygame.Surface, grid: list[list[bool]], cell_size: int) -> None:
+    BLACK = pygame.Color(0, 0, 0)
+    GREY = pygame.Color(127, 127, 127)
 
-    # Grid is traversed column-by-row to properly print out to the terminal.
-    for y in range(len(grid[0])):
-        for column in grid:
-            if column[y]:
-                print("██", end = "")
+    for x in range(len(grid)):
+        for y in range(len(grid[x])):
+            cell_rect = pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size)
+
+            # Draw a black square for living cells, and a grey one for dead cells.
+            if grid[x][y]:
+                pygame.draw.rect(screen, BLACK, cell_rect)
             else:
-                print("  ", end = "")
-        print()
+                pygame.draw.rect(screen, GREY, cell_rect)
+
+            # Draw an empty square with a black outline to represent gridlines.
+            pygame.draw.rect(screen, BLACK, cell_rect, 1)
+
+    pygame.display.flip()
 
 
 # Prompts the user to select from all .txt files in the current directory, then
@@ -75,9 +82,8 @@ def get_file_name() -> str:
             continue
 
     # Since filenames without the .txt extension are accepted, the extension
-    # must be added before returning the filename.
+    # must be added before returning the filename. 
     if filename[-4:] != ".txt":
-        print(filename[-4:])
         filename += ".txt"
 
     return filename
@@ -87,7 +93,7 @@ def get_file_name() -> str:
 def read_grid(file_path: str) -> list[list[bool]]:
     text_file = open(file_path)
 
-    text_lines = [line.strip('\n')[::] for line in text_file]
+    text_lines = [line.strip('\n') for line in text_file]
 
     max_line_length = max([len(line) for line in text_lines])
 
@@ -99,7 +105,8 @@ def read_grid(file_path: str) -> list[list[bool]]:
     transposed_text_grid = zip(*padded_text_lines)
 
     # 0s are parsed as dead cells, while all other characters are parsed as living cells.
-    cell_grid = [[False if char == '0' else True for char in column] for column in transposed_text_grid]
+    cell_grid = [[False if char == '0' else True for char in column] 
+                 for column in transposed_text_grid]
     
     print(f"Loaded file \"{file_path}\"")
 
@@ -108,7 +115,7 @@ def read_grid(file_path: str) -> list[list[bool]]:
 
 # Saves the current state of the grid to a text file of the user's choice.
 def write_grid(grid: list[list[bool]]) -> None:
-    filename = input("Enter a file name: ")
+    filename = input("Enter a file name: ").strip()
     while filename[-4:] != ".txt":
         if '.' not in filename:
             filename = filename + ".txt"
@@ -134,22 +141,62 @@ def write_grid(grid: list[list[bool]]) -> None:
 
 
 def main():
-    GEN_FREQUENCY = 4
+    GEN_FREQUENCY = 5
+    WIN_SIZE_RATIO = 0.90
+
+    pygame.init()
+
+    SCREEN_WIDTH = pygame.display.Info().current_w
+    SCREEN_HEIGHT = pygame.display.Info().current_h
 
     grid = read_grid(get_file_name())
 
-    while True:
-        gen_start_time = time.perf_counter_ns()
-        print_grid(grid)
+    # Scale the cell size off of the user's display.
+    cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), 
+                        SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
 
-        grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[0]))] 
-                for x in range(len(grid))]
+    screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
 
-        # Prevents the program from continuing until enough time has passed 
-        # since the last generation was displayed.
-        while time.perf_counter_ns() - gen_start_time < 1000000000 / GEN_FREQUENCY:
-            pass
+    clock = pygame.time.Clock()
+    millis_since_last_gen = 0
 
+    running = True
+    paused = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False                
+
+            if event.type == pygame.KEYDOWN:
+                match event.key:
+                    
+                    case pygame.K_SPACE:
+                        paused = not paused
+
+                    case pygame.K_o | pygame.K_r:
+                        grid = read_grid(get_file_name())
+                        # Dynamically scales the cell and window size when a new 
+                        # grid is opened from a file.
+                        cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid),
+                                            SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+                        screen = pygame.display.set_mode((len(grid) * cell_size, 
+                                                          len(grid[0]) * cell_size))
+                        render_grid(screen, grid, cell_size)
+
+                    case pygame.K_s | pygame.K_w:
+                        write_grid(grid)
+
+                    case pygame.K_ESCAPE:
+                        running = False
+         
+        millis_since_last_gen += clock.tick(60)
+        if millis_since_last_gen >= 1000 / GEN_FREQUENCY and not paused:
+            millis_since_last_gen = 0
+            grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] 
+                    for x in range(len(grid))]
+            render_grid(screen, grid, cell_size)
+            
 
 main()
 
