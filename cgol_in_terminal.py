@@ -99,7 +99,8 @@ def read_grid(file_path: str) -> list[list[bool]]:
     transposed_text_grid = zip(*padded_text_lines)
 
     # 0s are parsed as dead cells, while all other characters are parsed as living cells.
-    cell_grid = [[False if char == '0' else True for char in column] for column in transposed_text_grid]
+    cell_grid = [[False if char == '0' else True for char in column] 
+                 for column in transposed_text_grid]
     
     print(f"Loaded file \"{file_path}\"")
 
@@ -116,7 +117,7 @@ def write_grid(grid: list[list[bool]]) -> None:
             if filename[-4:] != filename:
                 break
 
-        filename = input(f"{filename} is not a valid file name, try again")
+        filename = input(f"{filename} is not a valid file name, try again: ")
 
     new_file = open(filename, 'w')
 

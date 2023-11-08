@@ -123,7 +123,7 @@ def write_grid(grid: list[list[bool]]) -> None:
             if filename[-4:] != filename:
                 break
 
-        filename = input(f"{filename} is not a valid file name, try again")
+        filename = input(f"{filename} is not a valid file name, try again: ")
 
     new_file = open(filename, 'w')
 
