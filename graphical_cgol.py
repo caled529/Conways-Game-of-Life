@@ -1,4 +1,7 @@
 import os
+# Disables the PyGame startup message.
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 
 
@@ -16,7 +19,7 @@ def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
             # their growth by permitting looping around to the other side of the 
             # grid. One could think of it like how world maps are projections of
             # a 3D sphere onto a 2D plane.
-            if grid[x % len(grid)][y % len(grid[0])]:
+            if grid[x % len(grid)][y % len(grid[0])] is True:
                 num_neighbours += 1
 
     # The rules of Conway's Game of Life state that a living cell will continue
@@ -24,7 +27,7 @@ def evaluate_cell(grid: list[list[bool]], cell_x: int , cell_y: int) -> bool:
     # cell will come to life in the next generation if it has exactly 3 
     # neighbours. All cells that do not fit into one of these three descriptions
     # will be dead in the next generation.
-    if grid[cell_x][cell_y]:
+    if grid[cell_x][cell_y] is True:
         if num_neighbours == 2 or num_neighbours == 3:
             return True
     else:
@@ -43,7 +46,7 @@ def render_grid(screen: pygame.Surface, grid: list[list[bool]], cell_size: int) 
             cell_rect = pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size)
 
             # Draw a black square for living cells, and a grey one for dead cells.
-            if grid[x][y]:
+            if grid[x][y] is True:
                 pygame.draw.rect(screen, BLACK, cell_rect)
             else:
                 pygame.draw.rect(screen, GREY, cell_rect)
@@ -52,6 +55,24 @@ def render_grid(screen: pygame.Surface, grid: list[list[bool]], cell_size: int) 
             pygame.draw.rect(screen, BLACK, cell_rect, 1)
 
     pygame.display.flip()
+
+
+# Prompts a user for a positive number, then validates the input.
+def get_pos_num(message: str = "") -> float:
+    print(message, end = "")
+
+    while True:
+        user_in = input()
+
+        # Periods have to be removed from the input when checking with isdigit 
+        # because otherwise strings representing decimal numbers would not go 
+        # through the filter. This means that we then also have to check that 
+        # there isnt more than one period in the string.
+        if user_in.replace('.', '').isdigit() and user_in.count('.') <= 1:
+            if float(user_in) > 0:
+                return float(user_in)
+
+        print(f"\"{user_in}\" is not a valid input, try again: ", end = "")
 
 
 # Prompts the user to select from all .txt files in the current directory, then
@@ -72,13 +93,13 @@ def get_file_name() -> str:
             if int(filename) in range(1, len(options) + 1):
                 filename = options[int(filename) - 1]
                 break
-            print(filename, "is not a valid file selection, try again: ", end ="")
+            print(f"\"{filename}\" is not a valid file selection, try again: ", end ="")
             continue
 
         if filename not in options:
             if filename + ".txt" in options:
                 break
-            print(filename, "is not a valid file selection, try again: ", end ="")
+            print(f"\"{filename}\" is not a valid file selection, try again: ", end ="")
             continue
 
     # Since filenames without the .txt extension are accepted, the extension
@@ -141,19 +162,18 @@ def write_grid(grid: list[list[bool]]) -> None:
 
 
 def main():
-    GEN_FREQUENCY = 4
-    WIN_SIZE_RATIO = 0.90
-
     pygame.init()
 
-    SCREEN_WIDTH = pygame.display.Info().current_w
-    SCREEN_HEIGHT = pygame.display.Info().current_h
+    WIN_SIZE_RATIO = 0.80
+    WIN_WIDTH = pygame.display.Info().current_w * WIN_SIZE_RATIO
+    WIN_HEIGHT = pygame.display.Info().current_h * WIN_SIZE_RATIO
 
     grid = read_grid(get_file_name())
 
+    gen_frequency = get_pos_num("Enter a numerical value >0 for the generation frequency: ")
+
     # Scale the cell size off of the user's display.
-    cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid), 
-                        SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+    cell_size = int(min(WIN_WIDTH / len(grid), WIN_HEIGHT / len(grid[0])))
 
     screen = pygame.display.set_mode((len(grid) * cell_size, len(grid[0]) * cell_size))
 
@@ -180,8 +200,7 @@ def main():
                         grid = read_grid(get_file_name())
                         # Dynamically scales the cell and window size when a new 
                         # grid is opened from a file.
-                        cell_size = int(min(SCREEN_WIDTH * WIN_SIZE_RATIO / len(grid),
-                                            SCREEN_HEIGHT * WIN_SIZE_RATIO / len(grid[0])))
+                        cell_size = int(min(WIN_WIDTH / len(grid), WIN_HEIGHT / len(grid[0])))
                         screen = pygame.display.set_mode((len(grid) * cell_size, 
                                                           len(grid[0]) * cell_size))
                         render_grid(screen, grid, cell_size)
@@ -197,7 +216,7 @@ def main():
                         running = False
          
         millis_since_last_gen += clock.tick(60)
-        if millis_since_last_gen >= 1000 / GEN_FREQUENCY and not paused:
+        if millis_since_last_gen >= 1000 / gen_frequency and not paused:
             millis_since_last_gen = 0
             grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] 
                     for x in range(len(grid))]
