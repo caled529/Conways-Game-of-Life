@@ -196,6 +196,17 @@ def main():
                     case pygame.K_SPACE:
                         paused = not paused
 
+                    # Lets the user step through generational steps manually.
+                    case pygame.K_n | pygame.K_RETURN:
+                        grid = [[evaluate_cell(grid, x, y) for y in range(len(grid[x]))] 
+                                for x in range(len(grid))]
+                        render_grid(screen, grid, cell_size)
+                        millis_since_last_gen = 0
+
+                    case pygame.K_g:
+                        gen_frequency = get_pos_num("Enter a new value for the" 
+                                                    + " generation frequency: ")
+
                     case pygame.K_o | pygame.K_r:
                         grid = read_grid(get_file_name())
                         # Dynamically scales the cell and window size when a new 
