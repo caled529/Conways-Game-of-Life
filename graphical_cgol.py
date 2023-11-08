@@ -185,6 +185,10 @@ def main():
                         screen = pygame.display.set_mode((len(grid) * cell_size, 
                                                           len(grid[0]) * cell_size))
                         render_grid(screen, grid, cell_size)
+                        # Want to reset the time since the last gen so the first
+                        # generation is visible for the same amount of time as 
+                        # the other ones.
+                        millis_since_last_gen = 0
 
                     case pygame.K_s | pygame.K_w:
                         write_grid(grid)
